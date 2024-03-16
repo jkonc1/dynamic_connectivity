@@ -16,19 +16,18 @@ struct SplayNode {
     SplayNode *left, *right;
     SplayNode* parent;
     unsigned size;
-    std::multiset<TagType> tags;
+    std::queue<TagType> tags;
     std::optional<TagReference> subtree_tag;
     DataType data;
 
-    std::optional<TagReference> get_tag() { return subtree_tag; }
-
-    bool has_tag(TagType tg) { return tags.count(tg); }
-
-    void remove_tag(TagType tg) {
+    std::optional<TagReference> get_tag() { 
         splay();
-        auto it = tags.find(tg);
-        if (it != tags.end()) tags.erase(it);
-        pull();
+        return subtree_tag;
+    }
+
+    void pop_tag() {
+        tags.pop();
+        splay();
     }
 
     SplayNode* get_rightmost() {
@@ -50,7 +49,7 @@ struct SplayNode {
         if (left) size += left->size;
         if (right) size += right->size;
         if (left) {
-            auto left_tag = left->get_tag();
+            auto left_tag = left->subtree_tag;
             if (left_tag.has_value()) {
                 subtree_tag = left_tag;
                 return;
@@ -58,7 +57,7 @@ struct SplayNode {
         }
 
         if (right) {
-            auto right_tag = right->get_tag();
+            auto right_tag = right->subtree_tag;
             if (right_tag.has_value()) {
                 subtree_tag = right_tag;
                 return;
@@ -66,7 +65,7 @@ struct SplayNode {
         }
 
         if (!tags.empty()) {
-            subtree_tag = {this, *begin(tags)};
+            subtree_tag = {this, tags.front()};
             return;
         }
 
@@ -92,6 +91,7 @@ struct SplayNode {
 
         pull();
         other.pull();
+        parent->pull();
     }
     void rotate_left() {
         auto& other = *right;
@@ -112,6 +112,7 @@ struct SplayNode {
 
         pull();
         other.pull();
+        parent->pull();
     }
 
     void rotate_up() {
@@ -150,6 +151,7 @@ struct SplayNode {
         while (parent != 0) {
             splay_step();
         }
+        pull();
     }
 
     SplayNode(DataType value) {
@@ -159,7 +161,7 @@ struct SplayNode {
     }
 
     void add_tag(TagType tg) {
-        tags.insert(tg);
+        tags.push(tg);
         splay();
     }
 
@@ -169,7 +171,7 @@ struct SplayNode {
         SplayNode* res = left;
         left->parent = 0;
         left = 0;
-        pull();
+        splay();
         return res;
     }
 
@@ -179,26 +181,17 @@ struct SplayNode {
         SplayNode* res = right;
         right->parent = 0;
         right = 0;
-        pull();
+        splay();
         return res;
     }
 
-    void attach_left(SplayNode* other) {
-        splay();
+    void merge_right(SplayNode* other) {
         if(other==0) return;
-        assert(left == 0);
-        left = other;
-        other->parent = this;
-        pull();
-    }
-
-    void attach_right(SplayNode* other) {
-        splay();
-        if(other==0) return;
-        assert(right==0);
-        right = other;
-        other->parent = this;
-        pull();
+        auto rightmost = get_rightmost();
+        other->splay();
+        rightmost->right = other;
+        other->parent = rightmost;
+        rightmost->splay();
     }
 };
 

@@ -1,5 +1,5 @@
 CXX       := g++
-CXX_FLAGS := -std=c++17 -g
+CXX_FLAGS := -std=c++17 -g -fsanitize=address
 
 BIN     := bin
 SRC     := src

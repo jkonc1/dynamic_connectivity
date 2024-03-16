@@ -1,15 +1,32 @@
 #include <utility>
 #include <optional>
+#include <map>
 
 #include "splay.h"
 
 namespace dnc {
 
-using Splay = SplayNode<int, std::pair<int, int>>;
+using DirectedEdge = std::pair<int, int>;
 
+struct Edge {
+    int u, v;
+    bool operator<(const Edge& other) const {
+        if (u != other.u) return u < other.u;
+        return v < other.v;
+    }
+    Edge(int u, int v) : u(u), v(v) {
+        if (u > v) std::swap(u, v);
+    }
+    DirectedEdge to_directed() const {
+        return {u, v};
+    }
+    DirectedEdge to_directed_reversed() const {
+        return {v, u};
+    }
+};
 
 struct Level {
-    using Edge = std::pair<int, int>;
+    using Splay = SplayNode<DirectedEdge, Edge>;
 
     struct ReplacementEdgeResponse{
         std::vector<Edge> to_level_up;
@@ -17,20 +34,25 @@ struct Level {
     };
 
 
-    Splay** begin_nodes;
-    Splay** end_nodes;
-    std::set<Edge> used_edges;
+    Splay** representative_nodes;
+    std::map<DirectedEdge, Splay*> used_edges;
+    std::map<Splay*, Splay*> twin;
+    std::multiset<Edge> owned_edges;
+    int n;
+
 
     Level(int n);
     ~Level();
-    void insert_edge(int a, int b);
-    bool delete_used_edge(int a, int b);
-    bool delete_unused_edge(int a, int b);
+    void insert_edge(Edge e);
+    bool delete_used_edge(Edge e);
+    bool delete_owned_edge(Edge e);
     bool connected(int a, int b);
     void reroot(Splay* node);
-    void link(int a, int b);
-    void cut(int a, int b);
-    ReplacementEdgeResponse get_replacement_edge(int a, int b);
+    void link(Edge e);
+    void cut(Edge e);
+    void insert_edge_tags(Edge e); 
+    void insert_non_owned_edge(Edge e);
+    ReplacementEdgeResponse get_replacement_edge(Edge e);
     Level (const Level&) = delete;
     Level& operator= (const Level&) = delete;
     Level(Level&&) = default;

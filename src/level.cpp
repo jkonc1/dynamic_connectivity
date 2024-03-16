@@ -2,61 +2,61 @@
 
 namespace dnc {
 
-Level::Level(int n) {
-    begin_nodes = new Splay*[n];
-    end_nodes = new Splay*[n];
+Level::Level(int _n) {
+    n = _n;
+    representative_nodes = new Splay*[n];
 
     for (int i = 0; i < n; i++) {
-        begin_nodes[i] = new Splay(i + 1);
-        end_nodes[i] = new Splay(-i - 1);
-        end_nodes[i]->parent = begin_nodes[i];
-        begin_nodes[i]->right = end_nodes[i];
-        begin_nodes[i]->pull();
+        representative_nodes[i] = new Splay({i, i});
     }
 }
 
 bool Level::connected(int a, int b) {
-    begin_nodes[a]->splay();
-    Splay* rightmost_a = begin_nodes[a]->get_rightmost();
-    Splay* rightmost_b = begin_nodes[b]->get_rightmost();
+    Splay* rightmost_a = representative_nodes[a]->get_rightmost();
+    Splay* rightmost_b = representative_nodes[b]->get_rightmost();
     return rightmost_a == rightmost_b;
 }
 
-void Level::link(int a, int b) {
-    if (a > b) std::swap(a, b);
+void Level::link(Edge e) {
+    Splay* edge_node = new Splay(e.to_directed());
+    Splay* twin_node = new Splay(e.to_directed_reversed());
+    used_edges[e.to_directed()] = edge_node;
+    used_edges[e.to_directed_reversed()] = twin_node;
 
-    Splay* parent = begin_nodes[a];
-    Splay* child = begin_nodes[b];
+    Splay* u_representative = representative_nodes[e.u];
+    reroot(u_representative);
 
-    // reroot the trees to a and b
-    reroot(parent);
-    reroot(child);
+    Splay* v_representative = representative_nodes[e.v];
+    reroot(v_representative);
 
-    // split off the first vertex of a
-    parent->splay();
-    Splay* remaining = parent->cut_right();
+    Splay* u_remainder = u_representative->cut_right();
 
-    // put the b tree after the root node
+    // order: representative node of u, edge u->v, v subtree, edge v->u, rest of
+    // the u tree
+    u_representative->merge_right(edge_node);
+    u_representative->merge_right(v_representative);
+    u_representative->merge_right(twin_node);
+    u_representative->merge_right(u_remainder);
 
-    child->attach_left(parent);
-
-    // put the rest of the euler tour at the end
-
-    Splay* rightmost = parent->get_rightmost();
-    rightmost->attach_right(remaining);
+    // TODO make merge a method of level instead?
 }
 
-void Level::insert_edge(int a, int b) {
-    if(a > b) std::swap(a,b);
-    bool same_component = connected(a, b);
-    if (same_component) {
-        // if they're in the same component, we just add the edge to the tags
-        begin_nodes[a]->add_tag({a, b});
-        begin_nodes[b]->add_tag({b, a});
-    } else {
-        link(a, b);
-        used_edges.insert({a, b});
+void Level::insert_edge(Edge e) {
+    insert_non_owned_edge(e);
+    insert_edge_tags(e);
+}
+
+void Level::insert_non_owned_edge(Edge e) {
+    bool same_component = connected(e.u, e.v);
+    if (!same_component) {
+        link(e);
     }
+}
+
+void Level::insert_edge_tags(Edge e) {
+    owned_edges.insert(e);
+    representative_nodes[e.u]->add_tag(e);
+    representative_nodes[e.v]->add_tag(e);
 }
 
 void Level::reroot(Splay* node) {
@@ -66,116 +66,108 @@ void Level::reroot(Splay* node) {
 
     Splay* left_section = node->cut_left();
 
-    Splay* rightmost = node->get_rightmost();
-
-    rightmost->attach_right(left_section);
+    node->merge_right(left_section);
 }
 
-bool Level::delete_used_edge(int a, int b) {
-    if(a > b) std::swap(a,b);
-
-    auto edge_ptr = used_edges.find({a, b});
-    if(edge_ptr != used_edges.end()){
-        cut(a, b);
-        used_edges.erase(edge_ptr);
+bool Level::delete_used_edge(Edge e) {
+    auto edge_ptr = used_edges.find(e.to_directed());
+    if (edge_ptr != used_edges.end()) {
+        cut(e);
         return true;
     }
     return false;
 }
 
-//3 5 -5 -4 4 -3
-
-//4 5 -5 -4
-  
-bool Level::delete_unused_edge(int a, int b) {
-    if (begin_nodes[a]->has_tag({a, b})) {
-        // if the edge is stored as a tag, just pop the tag
-        begin_nodes[a]->remove_tag({a, b});
-        begin_nodes[b]->remove_tag({b, a});
+bool Level::delete_owned_edge(Edge e) {
+    auto edge_ptr = owned_edges.find(e);
+    if (edge_ptr != owned_edges.end()) {
+        owned_edges.erase(edge_ptr);
         return true;
     }
     return false;
 }
 
-void Level::cut(int a, int b) {
-    if (a > b) std::swap(a, b);
+void Level::cut(Edge e) {
+    Splay* edge_node = used_edges[e.to_directed()];
+    Splay* twin_node = used_edges[e.to_directed_reversed()];
 
-    Splay* parent = begin_nodes[a];
-    Splay* child = begin_nodes[b];
+    reroot(edge_node);
 
-    reroot(parent);
+    // cut off edge
+    Splay* b_subtree = edge_node->cut_right();
 
-    // cut off everything to the left of the beginning of the cut subtree
+    // and twin edge
+    Splay* a_subtree = twin_node->cut_right();
+    twin_node->cut_left();
 
-    Splay* left_part = child->cut_left();
-
-    // cut off everything to the right of the end of the cut subtree
-
-    Splay* right_end = end_nodes[b];
-
-    Splay* right_leftover = right_end->cut_right();
-
-
-    // put the right leftover at the end of the left part
-    Splay* rightmost = left_part->get_rightmost();
-    rightmost->attach_right(right_leftover);
+    delete edge_node;
+    delete twin_node;
+    used_edges.erase(e.to_directed());
+    used_edges.erase(e.to_directed_reversed());
 }
 
-Level::ReplacementEdgeResponse Level::get_replacement_edge(int a, int b) {
+Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
     std::vector<Edge> to_level_up;
+    std::optional<Edge> replacement_edge = std::nullopt;
 
-    Splay* root_a = begin_nodes[a];
-    root_a->splay();
-    Splay* root_b = begin_nodes[b];
-    root_b->splay();
+    Splay* root_u = representative_nodes[e.u];
+    root_u->splay();
+    Splay* root_v = representative_nodes[e.v];
+    root_v->splay();
 
-    // make the a tree smaller
+    // make the u tree smaller
 
-    if(root_a->size > root_b->size) {
-        std::swap(root_a, root_b);
-        std::swap(a, b);
+    if (root_u->size > root_v->size) {
+        std::swap(root_u, root_v);
     }
 
-    // start looking for edges in the smaller (a) tree
+    // start looking for edges in the smaller (u) tree
 
-    while(1){
-        auto tag = root_a->get_tag();
+    while (1) {
+        auto tag = root_u->get_tag();
 
-        if(!tag.has_value()){
+        if (!tag.has_value()) {
             // tried all edges, none found
 
-            return {to_level_up, std::nullopt};
+            break;
         }
-
 
         auto edge = tag->value;
         auto node = tag->node;
 
-        auto [from, to] = edge;
+        node->pop_tag();
 
-        // pop the tag
-        node->remove_tag(edge);
+        // TODO
+        auto ptr = owned_edges.find(edge);
+        if (ptr == owned_edges.end()) {
+            // the edge was already deleted
+            continue;
+        }
 
-        auto other = begin_nodes[to];
-        other->remove_tag({to, from});
+        owned_edges.erase(ptr);
 
-        // if the edges connect vertices in the same tree, level up the edge
-        if(connected(from, to)){
+        if (connected(edge.u, edge.v)) {
+            // if the edges connect vertices in the same tree, level up the edge
             to_level_up.push_back(edge);
         } else {
-            // if the edge connects vertices in different trees, it's the replacement edge
-            return {to_level_up, edge};
+            // if the edge connects vertices in different trees, it's the
+            // replacement edge
+            replacement_edge = edge;
+            break;
         }
     }
+
+    return {to_level_up, replacement_edge};
 }
 
 Level::~Level() {
-    for(int i = 0; i < 5; i++) {
-        delete begin_nodes[i];
-        delete end_nodes[i];
+    for (int i = 0; i < n; i++) {
+        delete representative_nodes[i];
     }
-    delete[] begin_nodes;
-    delete[] end_nodes;
+    delete[] representative_nodes;
+    for (auto [edge, node] : used_edges) {
+        delete node;
+    }
 }
 
-}
+}  // namespace dnc
