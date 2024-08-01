@@ -16,7 +16,7 @@ struct SplayNode {
     SplayNode *left, *right;
     SplayNode* parent;
     unsigned size;
-    std::queue<TagType> tags;
+    std::multiset<TagType> tags;
     std::optional<TagReference> subtree_tag;
     DataType data;
 
@@ -25,8 +25,9 @@ struct SplayNode {
         return subtree_tag;
     }
 
-    void pop_tag() {
-        tags.pop();
+    void pop_tag(TagType tg) {
+        auto ptr = tags.find(tg);
+        if(ptr!=tags.end()) tags.erase(ptr);
         splay();
     }
 
@@ -65,7 +66,7 @@ struct SplayNode {
         }
 
         if (!tags.empty()) {
-            subtree_tag = {this, tags.front()};
+            subtree_tag = {this, *tags.begin()};
             return;
         }
 
@@ -76,10 +77,8 @@ struct SplayNode {
         auto& other = *left;
 
         if (parent) {
-            if (am_i_left_son())
-                parent->left = &other;
-            else
-                parent->right = &other;
+            if (am_i_left_son()) parent->left = &other;
+            else parent->right = &other;
         }
         other.parent = parent;
 
@@ -97,10 +96,8 @@ struct SplayNode {
         auto& other = *right;
 
         if (parent) {
-            if (am_i_left_son())
-                parent->left = &other;
-            else
-                parent->right = &other;
+            if (am_i_left_son()) parent->left = &other;
+            else parent->right = &other;
         }
         other.parent = parent;
 
@@ -161,7 +158,7 @@ struct SplayNode {
     }
 
     void add_tag(TagType tg) {
-        tags.push(tg);
+        tags.insert(tg);
         splay();
     }
 

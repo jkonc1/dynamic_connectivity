@@ -54,7 +54,6 @@ void Level::insert_non_owned_edge(Edge e) {
 }
 
 void Level::insert_edge_tags(Edge e) {
-    owned_edges.insert(e);
     representative_nodes[e.u]->add_tag(e);
     representative_nodes[e.v]->add_tag(e);
 }
@@ -78,13 +77,9 @@ bool Level::delete_used_edge(Edge e) {
     return false;
 }
 
-bool Level::delete_owned_edge(Edge e) {
-    auto edge_ptr = owned_edges.find(e);
-    if (edge_ptr != owned_edges.end()) {
-        owned_edges.erase(edge_ptr);
-        return true;
-    }
-    return false;
+void Level::delete_owned_edge(Edge e) {
+    representative_nodes[e.u]->pop_tag(e);
+    representative_nodes[e.v]->pop_tag(e);
 }
 
 void Level::cut(Edge e) {
@@ -135,19 +130,10 @@ Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
         auto edge = tag->value;
         auto node = tag->node;
 
-        node->pop_tag();
-
-        // TODO
-        auto ptr = owned_edges.find(edge);
-        if (ptr == owned_edges.end()) {
-            // the edge was already deleted
-            continue;
-        }
-
-        owned_edges.erase(ptr);
-
         if (connected(edge.u, edge.v)) {
             // if the edges connect vertices in the same tree, level up the edge
+            delete_owned_edge(edge);
+
             to_level_up.push_back(edge);
         } else {
             // if the edge connects vertices in different trees, it's the

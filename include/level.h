@@ -37,7 +37,6 @@ struct Level {
     Splay** representative_nodes;
     std::map<DirectedEdge, Splay*> used_edges;
     std::map<Splay*, Splay*> twin;
-    std::multiset<Edge> owned_edges;
     int n;
 
 
@@ -45,7 +44,7 @@ struct Level {
     ~Level();
     void insert_edge(Edge e);
     bool delete_used_edge(Edge e);
-    bool delete_owned_edge(Edge e);
+    void delete_owned_edge(Edge e);
     bool connected(int a, int b);
     void reroot(Splay* node);
     void link(Edge e);
@@ -56,6 +55,6 @@ struct Level {
     Level (const Level&) = delete;
     Level& operator= (const Level&) = delete;
     Level(Level&&) = default;
-};
+    };
 
 }  // namespace dnc
