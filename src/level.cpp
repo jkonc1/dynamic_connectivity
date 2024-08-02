@@ -54,8 +54,12 @@ void Level::insert_non_owned_edge(Edge e) {
 }
 
 void Level::insert_edge_tags(Edge e) {
-    representative_nodes[e.u]->add_tag(e);
-    representative_nodes[e.v]->add_tag(e);
+    int tag_index = tag_ctr++;
+    edge_tag_ids[e].push(tag_index);
+    
+    std::pair<int, Edge> tag = {tag_index, e};
+    representative_nodes[e.u]->add_tag(tag);
+    representative_nodes[e.v]->add_tag(tag);
 }
 
 void Level::reroot(Splay* node) {
@@ -77,9 +81,18 @@ bool Level::delete_used_edge(Edge e) {
     return false;
 }
 
-void Level::delete_owned_edge(Edge e) {
-    representative_nodes[e.u]->pop_tag(e);
-    representative_nodes[e.v]->pop_tag(e);
+bool Level::delete_owned_edge(Edge e) {
+    if(edge_tag_ids[e].empty())
+        return false;
+    auto tag_index = edge_tag_ids[e].front();
+    
+    edge_tag_ids[e].pop();
+
+    std::pair<int, Edge> tag = {tag_index, e};
+    if(!representative_nodes[e.u]->pop_tag(tag)) return false;
+    if(!representative_nodes[e.v]->pop_tag(tag)) return false;
+
+    return true;
 }
 
 void Level::cut(Edge e) {
@@ -127,7 +140,7 @@ Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
             break;
         }
 
-        auto edge = tag->value;
+        auto edge = tag->value.second;
         auto node = tag->node;
 
         if (connected(edge.u, edge.v)) {

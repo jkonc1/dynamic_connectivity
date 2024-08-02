@@ -14,7 +14,7 @@ struct Edge {
         if (u != other.u) return u < other.u;
         return v < other.v;
     }
-    Edge(int u, int v) : u(u), v(v) {
+    Edge(int _u, int _v) : u(_u), v(_v) {
         if (u > v) std::swap(u, v);
     }
     DirectedEdge to_directed() const {
@@ -26,7 +26,7 @@ struct Edge {
 };
 
 struct Level {
-    using Splay = SplayNode<DirectedEdge, Edge>;
+    using Splay = SplayNode<DirectedEdge, std::pair<int, Edge>>;
 
     struct ReplacementEdgeResponse{
         std::vector<Edge> to_level_up;
@@ -38,13 +38,15 @@ struct Level {
     std::map<DirectedEdge, Splay*> used_edges;
     std::map<Splay*, Splay*> twin;
     int n;
+    int tag_ctr=0;
+    std::map<Edge, std::queue<int>> edge_tag_ids;
 
 
     Level(int n);
     ~Level();
     void insert_edge(Edge e);
     bool delete_used_edge(Edge e);
-    void delete_owned_edge(Edge e);
+    bool delete_owned_edge(Edge e);
     bool connected(int a, int b);
     void reroot(Splay* node);
     void link(Edge e);

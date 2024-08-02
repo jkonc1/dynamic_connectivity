@@ -25,10 +25,14 @@ struct SplayNode {
         return subtree_tag;
     }
 
-    void pop_tag(TagType tg) {
+    bool pop_tag(TagType tg) {
         auto ptr = tags.find(tg);
-        if(ptr!=tags.end()) tags.erase(ptr);
+        if(ptr==tags.end()){
+            return false;
+        }
+        tags.erase(ptr);
         splay();
+        return true;
     }
 
     SplayNode* get_rightmost() {
@@ -49,6 +53,9 @@ struct SplayNode {
         size = 1;
         if (left) size += left->size;
         if (right) size += right->size;
+
+        subtree_tag = std::nullopt;
+
         if (left) {
             auto left_tag = left->subtree_tag;
             if (left_tag.has_value() &&
@@ -70,7 +77,6 @@ struct SplayNode {
             subtree_tag = TagReference{this, *tags.begin()};
         }
 
-        subtree_tag = std::nullopt;
     }
 
     void rotate_right() {
