@@ -51,23 +51,23 @@ struct SplayNode {
         if (right) size += right->size;
         if (left) {
             auto left_tag = left->subtree_tag;
-            if (left_tag.has_value()) {
+            if (left_tag.has_value() &&
+                (!subtree_tag.has_value() || left_tag->value < subtree_tag->value)) {
                 subtree_tag = left_tag;
-                return;
             }
         }
 
         if (right) {
             auto right_tag = right->subtree_tag;
-            if (right_tag.has_value()) {
+            if (right_tag.has_value() &&
+                (!subtree_tag.has_value() || right_tag->value < subtree_tag->value)) {
                 subtree_tag = right_tag;
-                return;
             }
         }
 
-        if (!tags.empty()) {
-            subtree_tag = {this, *tags.begin()};
-            return;
+        if (!tags.empty() &&
+            (!subtree_tag.has_value() || *tags.begin() < subtree_tag->value)) {
+            subtree_tag = TagReference{this, *tags.begin()};
         }
 
         subtree_tag = std::nullopt;
