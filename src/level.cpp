@@ -102,10 +102,10 @@ void Level::cut(Edge e) {
     reroot(edge_node);
 
     // cut off edge
-    Splay* b_subtree = edge_node->cut_right();
+    edge_node->cut_right();
 
     // and twin edge
-    Splay* a_subtree = twin_node->cut_right();
+    twin_node->cut_right();
     twin_node->cut_left();
 
     delete edge_node;
@@ -141,7 +141,6 @@ Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
         }
 
         auto edge = tag->value.second;
-        auto node = tag->node;
 
         if (connected(edge.u, edge.v)) {
             // if the edges connect vertices in the same tree, level up the edge

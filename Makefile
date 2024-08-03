@@ -1,5 +1,5 @@
 CXX       := g++
-CXX_FLAGS := -std=c++17 -g -fsanitize=address
+CXX_FLAGS := -std=c++17 -O3 -Wall
 
 BIN     := bin
 SRC     := src
@@ -14,8 +14,7 @@ run: clean all
 	clear
 	./$(BIN)/$(EXECUTABLE)
 
-assembly: $(SRC)/*.cpp
-	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -S -fverbose-asm $^ -o $(BIN)/$(EXECUTABLE).s
+
 
 $(BIN)/$(EXECUTABLE): $(SRC)/*.cpp
 	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) $^ -o $@

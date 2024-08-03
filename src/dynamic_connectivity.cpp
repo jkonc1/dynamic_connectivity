@@ -47,7 +47,7 @@ bool DynamicConnectivity::delete_edge(int a, int b) {
     edges.erase(ptr);
 
     // first try to delete the edge as unused
-    int edge_deletion_level;
+    int edge_deletion_level = -1;
 
     for (int level = levels_count - 1; level >= 0; level--) {
         if(levels[level].delete_owned_edge(edge)){
