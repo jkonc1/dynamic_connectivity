@@ -13,9 +13,9 @@ private:
     std::multiset<Edge> edges;
 public:
     DynamicConnectivity(int n);
-    void insert_edge(int a, int b);
-    bool delete_edge(int a, int b);
-    bool is_connected(int a, int b);
+    void insert_edge(int u, int v);
+    bool delete_edge(int u, int v);
+    bool is_connected(int u, int v);
     unsigned int connected_components();
 };
 
