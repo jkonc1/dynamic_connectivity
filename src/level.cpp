@@ -41,22 +41,22 @@ void Level::link(Edge e) {
     // TODO make merge a method of level instead?
 }
 
-void Level::insert_edge(Edge e) {
-    insert_non_owned_edge(e);
-    insert_edge_tags(e);
+void Level::insert_edge_with_tag(Edge e) {
+    insert_edge(e);
+    insert_tag(e);
 }
 
-void Level::insert_non_owned_edge(Edge e) {
+void Level::insert_edge(Edge e) {
     bool same_component = connected(e.u, e.v);
     if (!same_component) {
         link(e);
     }
 }
 
-void Level::insert_edge_tags(Edge e) {
+void Level::insert_tag(Edge e) {
     int tag_index = tag_ctr++;
     edge_tag_ids[e].push(tag_index);
-    
+
     std::pair<int, Edge> tag = {tag_index, e};
     representative_nodes[e.u]->add_tag(tag);
     representative_nodes[e.v]->add_tag(tag);
@@ -72,7 +72,7 @@ void Level::reroot(Splay* node) {
     node->merge_right(left_section);
 }
 
-bool Level::delete_used_edge(Edge e) {
+bool Level::delete_edge(Edge e) {
     auto edge_ptr = used_edges.find(e.to_directed());
     if (edge_ptr != used_edges.end()) {
         cut(e);
@@ -81,16 +81,15 @@ bool Level::delete_used_edge(Edge e) {
     return false;
 }
 
-bool Level::delete_owned_edge(Edge e) {
-    if(edge_tag_ids[e].empty())
-        return false;
+bool Level::delete_tag(Edge e) {
+    if (edge_tag_ids[e].empty()) return false;
     auto tag_index = edge_tag_ids[e].front();
-    
+
     edge_tag_ids[e].pop();
 
     std::pair<int, Edge> tag = {tag_index, e};
-    if(!representative_nodes[e.u]->pop_tag(tag)) return false;
-    if(!representative_nodes[e.v]->pop_tag(tag)) return false;
+    if (!representative_nodes[e.u]->pop_tag(tag)) return false;
+    if (!representative_nodes[e.v]->pop_tag(tag)) return false;
 
     return true;
 }
@@ -144,7 +143,7 @@ Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
 
         if (connected(edge.u, edge.v)) {
             // if the edges connect vertices in the same tree, level up the edge
-            delete_owned_edge(edge);
+            delete_tag(edge);
 
             to_level_up.push_back(edge);
         } else {

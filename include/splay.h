@@ -25,6 +25,9 @@ struct SplayNode {
         return subtree_tag;
     }
 
+    /// @brief Remove the tag from the node, if it exists
+    /// @param tg The tag to remove
+    /// @return True if the tag was removed, false otherwise
     bool pop_tag(TagType tg) {
         auto ptr = tags.find(tg);
         if(ptr==tags.end()){
@@ -35,6 +38,7 @@ struct SplayNode {
         return true;
     }
 
+    /// @brief Get the rightmost node in the tree
     SplayNode* get_rightmost() {
         splay();
         auto curr = this;
@@ -48,6 +52,8 @@ struct SplayNode {
         return 0;
     }
 
+    /// @brief Update the size of the node's subtree and the subtree tag
+    /// @details The subtree tag is the smallest tag in the subtree of the node
     void pull() {
 
         size = 1;
@@ -98,6 +104,7 @@ struct SplayNode {
         other.pull();
         parent->pull();
     }
+
     void rotate_left() {
         auto& other = *right;
 
@@ -118,6 +125,7 @@ struct SplayNode {
         parent->pull();
     }
 
+    /// @brief Rotate the node up one level
     void rotate_up() {
         auto& pr = *parent;
         if (am_i_left_son()) {
@@ -127,6 +135,7 @@ struct SplayNode {
         }
     }
 
+    /// @brief Rotate the node upwards twice
     void double_rotation() {
         auto& pr = *parent;
 
@@ -150,6 +159,7 @@ struct SplayNode {
         }
     }
 
+    /// @brief Splay the node to the root
     void splay() {
         while (parent != 0) {
             splay_step();
@@ -168,6 +178,8 @@ struct SplayNode {
         splay();
     }
 
+    /// @brief Cut the left subtree of the node
+    /// @return Pointer to the root of the cut subtree
     SplayNode* cut_left() {
         splay();
         if(left==0) return 0;
@@ -178,6 +190,8 @@ struct SplayNode {
         return res;
     }
 
+    /// @brief Cut the right subtree of the node
+    /// @return Pointer to the root of the cut subtree
     SplayNode* cut_right() {
         splay();
         if(right==0) return 0;
@@ -188,6 +202,8 @@ struct SplayNode {
         return res;
     }
 
+    /// @brief Merge another subtree to the right of the current
+    /// @param other The subtree to merge
     void merge_right(SplayNode* other) {
         if(other==0) return;
         auto rightmost = get_rightmost();

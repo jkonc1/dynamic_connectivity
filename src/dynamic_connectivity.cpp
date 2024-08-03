@@ -28,7 +28,7 @@ void DynamicConnectivity::insert_edge(int a, int b) {
     Edge edge(a, b);
 
     edges.insert(edge);
-    levels[0].insert_edge(edge);
+    levels[0].insert_edge_with_tag(edge);
 
     connected_components_count -= is_connected(a, b);
 }
@@ -38,7 +38,7 @@ bool DynamicConnectivity::is_connected(int a, int b) {
 }
 
 bool DynamicConnectivity::delete_edge(int a, int b) {
-        Edge edge(a, b);
+    Edge edge(a, b);
     auto ptr = edges.find(edge);
     if (ptr == edges.end()) {
         // the edge doesn't exist
@@ -50,19 +50,19 @@ bool DynamicConnectivity::delete_edge(int a, int b) {
     int edge_deletion_level = -1;
 
     for (int level = levels_count - 1; level >= 0; level--) {
-        if(levels[level].delete_owned_edge(edge)){
+        if (levels[level].delete_tag(edge)) {
             edge_deletion_level = level;
             break;
         }
     }
-    
+
     bool used = false;
 
     for (int level = edge_deletion_level; level >= 0; level--) {
-        used |= levels[level].delete_used_edge(edge);
+        used |= levels[level].delete_edge(edge);
     }
 
-    if(!used){
+    if (!used) {
         // the edge was not used, we can just return
         return true;
     }
@@ -70,12 +70,12 @@ bool DynamicConnectivity::delete_edge(int a, int b) {
     for (int level = edge_deletion_level; level >= 0; level--) {
         auto replacement_edge = levels[level].get_replacement_edge(edge);
         for (auto& edge : replacement_edge.to_level_up) {
-            levels[level + 1].insert_edge(edge);
+            levels[level + 1].insert_edge_with_tag(edge);
         }
 
         if (replacement_edge.found_edge.has_value()) {
             for (int i = 0; i <= level; i++) {
-                levels[i].insert_non_owned_edge(replacement_edge.found_edge.value());
+                levels[i].insert_edge(replacement_edge.found_edge.value());
             }
             // levels[level].insert_edge(replacement_edge.found_edge.value());
 
