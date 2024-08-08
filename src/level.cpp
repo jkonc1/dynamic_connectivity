@@ -65,9 +65,9 @@ void Level::insert_tag(Edge e) {
 void Level::reroot(Splay* node) {
     node->splay();
 
-    if (node->left == 0) return;  // already the root
-
     Splay* left_section = node->cut_left();
+
+    if (left_section == 0) return;  // already the root
 
     node->merge_right(left_section);
 }
@@ -124,7 +124,7 @@ Level::ReplacementEdgeResponse Level::get_replacement_edge(Edge e) {
 
     // make the u tree smaller
 
-    if (root_u->size > root_v->size) {
+    if (root_u->get_size() > root_v->get_size()) {
         std::swap(root_u, root_v);
     }
 

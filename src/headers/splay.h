@@ -8,11 +8,13 @@ namespace dnc {
 
 template <class DataType, class TagType>
 struct SplayNode {
+public:
     struct TagReference {
         SplayNode* node;
         TagType value;
     };
 
+private:
     /// @brief Pointers to child nodes
     SplayNode *left, *right;
     /// @brief Pointer to parent node
@@ -25,6 +27,7 @@ struct SplayNode {
     std::optional<TagReference> subtree_tag;
     DataType data;
 
+public:
     /// @brief Get the smallest tag in subtree
     std::optional<TagReference> get_tag() { 
         splay();
@@ -217,6 +220,10 @@ struct SplayNode {
         rightmost->right = other;
         other->parent = rightmost;
         rightmost->splay();
+    }
+    
+    int get_size(){
+        return size;
     }
 };
 

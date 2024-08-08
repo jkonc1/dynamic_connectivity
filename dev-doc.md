@@ -81,7 +81,7 @@ The amortized time complexity of the first two operations is $O(\log^2 n)$. That
 
 # Implementation
 
-The algorithm is implemented using several composed classes.
+The algorithm is implemented using several composed structs/classes.
 
 The first one is a templated `SplayNode` class. The splay tree is held together with pointers and each node contains a multiset of tags, the oldest tag in it's subtree and the size of the subtree. The class also has methods for merging and splitting the trees easily.
 

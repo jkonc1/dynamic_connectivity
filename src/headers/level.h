@@ -21,7 +21,8 @@ struct Edge {
     DirectedEdge to_directed_reversed() const { return {v, u}; }
 };
 
-struct Level {
+class Level {
+public:
     using Splay = SplayNode<DirectedEdge, std::pair<int, Edge>>;
 
     struct ReplacementEdgeResponse {
@@ -29,6 +30,7 @@ struct Level {
         std::optional<Edge> found_edge;
     };
 
+private:
     /// @brief Self-edge for each of the nodes
     Splay** representative_nodes;
     /// @brief Map from directed edges in the tree to pointers to them
@@ -39,6 +41,7 @@ struct Level {
     int tag_ctr = 0;
     std::map<Edge, std::queue<int>> edge_tag_ids;
 
+public:
     Level(int n);
     ~Level();
     /// @brief Insert a tag and also insert it into forest
