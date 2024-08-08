@@ -4,7 +4,7 @@
 
 namespace dnc {
 
-class DynamicConnectivity{
+class DynamicConnectivityImpl{
 private:
     int levels_count;
     int n;
@@ -12,7 +12,7 @@ private:
     std::vector<Level> levels;
     std::multiset<Edge> edges;
 public:
-    DynamicConnectivity(int n);
+    DynamicConnectivityImpl(int n);
     void insert_edge(int u, int v);
     bool delete_edge(int u, int v);
     bool is_connected(int u, int v);

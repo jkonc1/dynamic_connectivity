@@ -1,0 +1,7 @@
+bin
+build
+lib
+.idea
+.vscode
+compile_commands.json
+combine.sh

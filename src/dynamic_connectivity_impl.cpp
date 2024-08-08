@@ -1,8 +1,8 @@
-#include "dynamic_connectivity.h"
+#include "dynamic_connectivity_impl.h"
 
 namespace dnc {
 
-DynamicConnectivity::DynamicConnectivity(int _n) {
+DynamicConnectivityImpl::DynamicConnectivityImpl(int _n) {
     n = _n;
 
     levels_count = 0;
@@ -21,7 +21,7 @@ DynamicConnectivity::DynamicConnectivity(int _n) {
     }
 }
 
-void DynamicConnectivity::insert_edge(int a, int b) {
+void DynamicConnectivityImpl::insert_edge(int a, int b) {
     if (a == b) return;
     connected_components_count += is_connected(a, b);
 
@@ -33,11 +33,11 @@ void DynamicConnectivity::insert_edge(int a, int b) {
     connected_components_count -= is_connected(a, b);
 }
 
-bool DynamicConnectivity::is_connected(int a, int b) {
+bool DynamicConnectivityImpl::is_connected(int a, int b) {
     return levels[0].connected(a, b);
 }
 
-bool DynamicConnectivity::delete_edge(int a, int b) {
+bool DynamicConnectivityImpl::delete_edge(int a, int b) {
     Edge edge(a, b);
     auto ptr = edges.find(edge);
     if (ptr == edges.end()) {
@@ -87,7 +87,7 @@ bool DynamicConnectivity::delete_edge(int a, int b) {
     return true;
 }
 
-unsigned int DynamicConnectivity::connected_components() {
+unsigned int DynamicConnectivityImpl::connected_components() {
     return connected_components_count;
 }
 

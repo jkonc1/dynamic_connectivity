@@ -1,23 +1,43 @@
 CXX       := g++
 CXX_FLAGS := -std=c++17 -O3 -Wall
 
-BIN     := bin
+LIB		:= lib
 SRC     := src
-INCLUDE := include
+HEADERS := include
+PRIVATE_HEADERS := src/headers
+BUILD   := build
+EXAMPLE := example
+BIN     := bin
 
-EXECUTABLE  := dynamic_connectivity
+LIB_NAME    := libdnc.a
 
+SRC_FILES := $(wildcard $(SRC)/*.cpp)
+OBJ_FILES := $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(SRC_FILES))
+EXAMPLES  := $(wildcard $(EXAMPLE)/*.cpp)
+BINARIES  := $(patsubst $(EXAMPLE)/%.cpp, $(BIN)/%, $(EXAMPLES))
 
-all: $(BIN)/$(EXECUTABLE)
+.PHONY: all clean test
 
-run: clean all
-	clear
-	./$(BIN)/$(EXECUTABLE)
+all: $(LIB)/$(LIB_NAME) $(EXAMPLES)
 
-
-
-$(BIN)/$(EXECUTABLE): $(SRC)/*.cpp
-	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) $^ -o $@
+test: all $(BINARIES) bin/offline
 
 clean:
-	-rm $(BIN)/*
+	$(RM) -r $(BUILD)
+	$(RM) -r $(LIB)
+	$(RM) -r $(BIN)
+
+$(LIB)/$(LIB_NAME): $(OBJ_FILES)
+	@mkdir -p $(LIB)
+	ar rcs $@ $^
+	
+$(BUILD)/%.o: $(SRC)/%.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(CXX_FLAGS) -I$(HEADERS) -I$(PRIVATE_HEADERS) -c $< -o $@
+
+$(BIN)/offline: test/offline.cpp
+	$(CXX) $(CXX_FLAGS) test/offline.cpp -o $@
+
+$(BIN)/%: $(EXAMPLE)/%.cpp $(LIB)/$(LIB_NAME)
+	@mkdir -p $(BIN)
+	$(CXX) $(CXX_FLAGS) -I$(HEADERS) $< -o $@ -L$(LIB) -ldnc
