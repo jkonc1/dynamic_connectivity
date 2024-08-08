@@ -13,13 +13,19 @@ struct SplayNode {
         TagType value;
     };
 
+    /// @brief Pointers to child nodes
     SplayNode *left, *right;
+    /// @brief Pointer to parent node
     SplayNode* parent;
+    /// @brief Size of node's subtree
     unsigned size;
+    /// @brief Tags attached to this node
     std::multiset<TagType> tags;
+    /// @brief Smallest tag in subtree
     std::optional<TagReference> subtree_tag;
     DataType data;
 
+    /// @brief Get the smallest tag in subtree
     std::optional<TagReference> get_tag() { 
         splay();
         return subtree_tag;
