@@ -46,12 +46,22 @@ public:
     ~Level();
     /// @brief Insert a tag and also insert it into forest
     void insert_edge_with_tag(Edge e);
+    /// @brief Check if the nodes are in the same tree
+    bool connected(int a, int b);
     /// @brief Delete an edge from forest
     bool delete_edge(Edge e);
     /// @brief Delete the tag from it's endpoints
     bool delete_tag(Edge e);
-    /// @brief Check if the nodes are in the same tree
-    bool connected(int a, int b);
+    /// @brief Insert an edge from the forest, if it's ends are disconnected
+    void insert_edge(Edge e);
+    /// @brief Try to find a replecement edge for a just-removed edge
+    ReplacementEdgeResponse get_replacement_edge(Edge e);
+
+    Level(const Level&) = delete;
+    Level& operator=(const Level&) = delete;
+    Level(Level&&) = default;
+
+private:
     /// @brief Reroot the node's tree to the node
     void reroot(Splay* node);
     /// @brief Add an edge in the forest
@@ -60,13 +70,6 @@ public:
     void cut(Edge e);
     /// @brief Insert a tag
     void insert_tag(Edge e);
-    /// @brief Insert an edge from the forest, if it's ends are disconnected
-    void insert_edge(Edge e);
-    /// @brief Try to find a replecement edge for a just-removed edge
-    ReplacementEdgeResponse get_replacement_edge(Edge e);
-    Level(const Level&) = delete;
-    Level& operator=(const Level&) = delete;
-    Level(Level&&) = default;
 };
 
 }  // namespace dnc

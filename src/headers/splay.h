@@ -56,6 +56,66 @@ public:
         return curr;
     }
 
+
+    /// @brief Splay the node to the root
+    void splay() {
+        while (parent != 0) {
+            splay_step();
+        }
+        pull();
+    }
+
+    SplayNode(DataType value) {
+        left = right = parent = 0;
+        data = value;
+        size=1;
+    }
+
+    void add_tag(TagType tg) {
+        tags.insert(tg);
+        splay();
+    }
+
+    /// @brief Cut the left subtree of the node
+    /// @return Pointer to the root of the cut subtree
+    SplayNode* cut_left() {
+        splay();
+        if(left==0) return 0;
+        SplayNode* res = left;
+        left->parent = 0;
+        left = 0;
+        splay();
+        return res;
+    }
+
+    /// @brief Cut the right subtree of the node
+    /// @return Pointer to the root of the cut subtree
+    SplayNode* cut_right() {
+        splay();
+        if(right==0) return 0;
+        SplayNode* res = right;
+        right->parent = 0;
+        right = 0;
+        splay();
+        return res;
+    }
+
+    /// @brief Merge another subtree to the right of the current
+    /// @param other The subtree to merge
+    void merge_right(SplayNode* other) {
+        if(other==0) return;
+        auto rightmost = get_rightmost();
+        other->splay();
+        rightmost->right = other;
+        other->parent = rightmost;
+        rightmost->splay();
+    }
+    
+    int get_size(){
+        return size;
+    }
+
+private:
     bool am_i_left_son() {
         if (parent == 0 || parent->left == this) return 1;
         return 0;
@@ -166,64 +226,6 @@ public:
             // double rotation
             double_rotation();
         }
-    }
-
-    /// @brief Splay the node to the root
-    void splay() {
-        while (parent != 0) {
-            splay_step();
-        }
-        pull();
-    }
-
-    SplayNode(DataType value) {
-        left = right = parent = 0;
-        data = value;
-        size=1;
-    }
-
-    void add_tag(TagType tg) {
-        tags.insert(tg);
-        splay();
-    }
-
-    /// @brief Cut the left subtree of the node
-    /// @return Pointer to the root of the cut subtree
-    SplayNode* cut_left() {
-        splay();
-        if(left==0) return 0;
-        SplayNode* res = left;
-        left->parent = 0;
-        left = 0;
-        splay();
-        return res;
-    }
-
-    /// @brief Cut the right subtree of the node
-    /// @return Pointer to the root of the cut subtree
-    SplayNode* cut_right() {
-        splay();
-        if(right==0) return 0;
-        SplayNode* res = right;
-        right->parent = 0;
-        right = 0;
-        splay();
-        return res;
-    }
-
-    /// @brief Merge another subtree to the right of the current
-    /// @param other The subtree to merge
-    void merge_right(SplayNode* other) {
-        if(other==0) return;
-        auto rightmost = get_rightmost();
-        other->splay();
-        rightmost->right = other;
-        other->parent = rightmost;
-        rightmost->splay();
-    }
-    
-    int get_size(){
-        return size;
     }
 };
 
