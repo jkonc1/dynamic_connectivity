@@ -16,11 +16,13 @@ OBJ_FILES := $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(SRC_FILES))
 EXAMPLES  := $(wildcard $(EXAMPLE)/*.cpp)
 BINARIES  := $(patsubst $(EXAMPLE)/%.cpp, $(BIN)/%, $(EXAMPLES))
 
-.PHONY: all clean test
+.PHONY: all clean examples test
 
 all: $(LIB)/$(LIB_NAME) $(EXAMPLES)
 
-test: all $(BINARIES) bin/offline
+examples: all $(BINARIES)
+	
+test: examples bin/offline
 
 clean:
 	$(RM) -r $(BUILD)
